@@ -10,6 +10,14 @@ docker build -t yys/httpserver:v0 .
 ```
 ![构件本地镜像](./images/Screen%20Shot%202022-10-16%20at%2022.05.01.png)
 
+- 将镜像推送至 docker 官方镜像仓库
+```shell
+docker login #ocker login -u "name" -p "password" docker.io
+docker tag yys/httpserver:v0 irenia111/httpserver:v0
+docker push irenia111/httpserver:v0
+```
+镜像仓库：https://hub.docker.com/repository/docker/irenia111/httpserver
+
 - 通过 docker 命令本地启动 httpserver
 ```shell
 docker run -p 80:80 yys/httpserver:v0
