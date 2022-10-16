@@ -4,7 +4,7 @@
 go run main.go
 ```
 ## 模块三作业
-- 构件本地镜像，使用练httpserver
+- 构件本地镜像，使用httpserver代码
 ```shell
 docker build -t yys/httpserver:v0 .  
 ```
