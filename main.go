@@ -30,8 +30,7 @@ func main() {
 	// mux.HandleFunc("/debug/pprof/profile", pprof.Profile)
 	// mux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
 	// mux.HandleFunc("/debug/pprof/trace", pprof.Trace)
-
-	// http.ListenAndServe(":6060", mux)
+	
 	// server := &http.Server{
 	// 	Addr:         ":6000",
 	// 	ReadTimeout:  60 * time.Second,

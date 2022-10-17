@@ -1,0 +1,6 @@
+#!/bin/sh
+FROM ubuntu
+ENV MY_SERVICE_PORT=6060
+ADD httpserver /bin/httpserver
+# CMD ["/bin/httpserver"]
+EXPOSE $MY_SERVICE_PORT

@@ -1,6 +1,0 @@
-#!/bin/sh
-FROM ubuntu
-ENV MY_SERVICE_PORT=6060
-ADD httpserver /httpserver
-ENTRYPOINT ["/httpserver"]
-EXPOSE 6060
