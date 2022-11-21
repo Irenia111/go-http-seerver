@@ -1,0 +1,98 @@
+apiVersion: apps/v1 #指定api版本标签
+kind: Deployment # 定义资源的类型/角色，deployment为副本控制器，此处资源类型可以是Deployment、Job、Ingress、Service等
+metadata: # 定义资源的元数据信息，比如资源的名称、namespace、标签等信息
+  name: httpserver-deployment #定义资源的名称，在同一个namespace空间中必须是唯一的
+  labels: #定义资源标签(Pod的标签)
+    app: httpserver
+spec: #定义deployment资源需要的参数属性，诸如是否在容器失败时重新启动容器的属性
+  replicas: 2 #定义副本数量
+  selector: #定义标签选择器
+    matchLabels: #定义匹配标签
+      app: httpserver #匹配上面的标签，需与上面的标签定义的app保持一致
+  template: #【定义业务模板】，如果有多个副本，所有副本的属性会按照模板的相关配置进行匹配
+    metadata:
+      labels:
+        app: httpserver
+    spec:
+      containers: #定义容器属性
+        - name: httpserver #定义一个容器名，一个- name:定义一个容器
+          image: httpserver ##镜像名称
+          ##= command: [ "/bin/sh","-c","cat /etc/config/path/to/special-key" ]    #启动命令
+          args: ["--v=10"]   #启动参数, 配置日志等级为10
+          ## 如果command和args均没有写，那么用Docker默认的配置。
+          ## 如果command写了，但args没有写，那么Docker默认的配置会被忽略而且仅仅执行.yaml文件的command（不带任何参数的）。
+          ## 如果command没写，但args写了，那么Docker默认配置的ENTRYPOINT的命令行会被执行，但是调用的参数是.yaml中的args。
+          ## 如果如果command和args都写了，那么Docker默认的配置被忽略，使用.yaml的配置。
+          ## imagePullPolicy: IfNotPresent  #如果不存在则拉取
+          env: # 环境变量
+            - name: PORT
+              valueFrom: # 指定值的来源
+                configMapKeyRef: # 从ConfigMap中获取
+                  name: http-config # 指定ConfigMap
+                  key: PORT # 指定configMap中的key，赋值给变量
+          livenessProbe: 
+          ## 表示container是否处于live状态。如果LivenessProbe失败，LivenessProbe将会通知kubelet对应的container不健康了。随后kubelet将kill掉container，并根据RestarPolicy进行进一步的操作。默认情况下LivenessProbe在第一次检测之前初始化值为Success，如果container没有提供LivenessProbe，则也认为是Success
+        ##  exec: # 通过在容器内执行命令或脚本的方式，命令执行状态码为0，视为探测成功
+          ##  command: ['curl', '/healthz']
+          ##  command:
+          ##    - curl
+          ##    - /healthz
+            httpGet: # 通过http get的方式访问容器IP地址，并指定端口和路径，如果响应码会2xx或3xx视为成功
+              path: /healthz # 访问路径，也就是UPI示例：/index.html
+              port: 80 # 访问端口
+        ##    host: string # 访问的主机名，默认为容器IP，可不设
+        ##    scheme: string # 用于连接的协议，默认为http,可不设
+        ##    httpHeaders: # 自定义请求头
+        ##      - name: string # 名称
+        ##        value: string # 值
+            initialDelaySeconds: 10 # 启动后延时多久开始运行检测
+            periodSeconds: 30 # 检测周期，也就检测时间间隔
+            timeoutSeconds: 5 # 响应超时时间
+            failureThreshold: 3    # liveness探测失败的次数；如果连续三次失败，就会杀掉进程重启容器
+            successThreshold: 1    # liveness探测成功的次数；如果成功1次，就表示容器正常
+          resources:  # 资源和请求的设置
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:  # 资源限制
+              cpu: 200m  # CPU限制。
+                         # 两种方式可以直接指定使用核数，也可以用单位：m来指定。0.5 ：相当于0.5颗, 
+                         # 一台服务器的CPU总量等于核数乘以1000。设机器的核数为两核，则总量为2000m。此时设置CPU限制为100m,则相当于是使用了100/2000,也就是5%。此时0.5=500m
+              memory: 200Mi # 内存限制。
+                            # 单位：直接使用正整数表示Byte;k;m;g;t;p 
+                            # 不区分大小写（Kilobyte,Megabyte,Gigabyte,Terabyte,Petabyte）
+          volumeMounts: # 挂载定义的存储卷到容器，需要通过volumes定义
+            - name: varlog # 定义的volume的名称
+              mountPath: /var/log # 容器内挂载的目录的绝对路径（少于512字符）
+              ## readOnly: boolean(布尔值) # 是否只读
+       ## restartPolicy: [Always|Never|OnFailure] # 重启策略
+       ## nodeSelector: # 根据标签调度到的指定node节点，使用前需要对节点打标签
+       ##   key: value # 使用命令kubectl label nodes node-name key=value 
+       ##  imagePullSecrets: # 指定镜像拉取时使用账户密码。需要先保存到Secret中
+       ##     - name: string
+       ##  hostNetwork: false # 是否使用主机网络，默认为false 
+      volumes: # 存储卷
+        - name: varlog
+          emptyDir: {} # 该类存储卷是临时生成的一个目录，与pod生命周期同步
+        - name: config
+          configMap: # 挂载ConfigMap到容器内
+            name: http-config
+            items: # 要调用的键，值会被写入文件,可以设定多个，在被volumeMounts调用时，这些文件会被一起放在挂载目录下，也可以挂入到一个文件
+              - key: PORT
+                path: "80"
+        ## - name: string 
+        ##   hostPath: # 挂载宿主机的目录
+        ##   path: string   # 用于挂载的目录
+        ## - name: string
+        ##   nfs:
+        ##   server: string # 服务IP地址
+        ##   path: string # 用于挂载的目录
+        ## - name: string
+        ##   persistentVolumeClaim: # 调用已经创建的持久卷
+        ##   claimName: string # 持久卷声明的名称
+        ## - name: string
+        ##   secret: # 挂载secret到容器内
+        ##   secretname: string
+        ##   items:
+        ##    - key: string
+        ##      path: string

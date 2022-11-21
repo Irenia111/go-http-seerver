@@ -39,8 +39,8 @@ func main() {
 	// }
 	// server.ListenAndServe()
 
-	http.ListenAndServe(":6060", mux)
-	if err := http.ListenAndServe(":6060", nil); err != nil {
+	http.ListenAndServe(":80", mux)
+	if err := http.ListenAndServe(":80", nil); err != nil {
 		log.Fatal(err)
 		fmt.Printf("Server failed: %s\n", err)
 	}
