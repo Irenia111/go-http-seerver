@@ -30,7 +30,7 @@ spec: #定义deployment资源需要的参数属性，诸如是否在容器失败
                 configMapKeyRef: # 从ConfigMap中获取
                   name: http-config # 指定ConfigMap
                   key: PORT # 指定configMap中的key，赋值给变量
-          livenessProbe: 
+          livenessProbe:  # 探活
           ## 表示container是否处于live状态。如果LivenessProbe失败，LivenessProbe将会通知kubelet对应的container不健康了。随后kubelet将kill掉container，并根据RestarPolicy进行进一步的操作。默认情况下LivenessProbe在第一次检测之前初始化值为Success，如果container没有提供LivenessProbe，则也认为是Success
         ##  exec: # 通过在容器内执行命令或脚本的方式，命令执行状态码为0，视为探测成功
           ##  command: ['curl', '/healthz']
@@ -49,7 +49,14 @@ spec: #定义deployment资源需要的参数属性，诸如是否在容器失败
             periodSeconds: 30 # 检测周期，也就检测时间间隔
             timeoutSeconds: 5 # 响应超时时间
             failureThreshold: 3    # liveness探测失败的次数；如果连续三次失败，就会杀掉进程重启容器
-            successThreshold: 1    # liveness探测成功的次数；如果成功1次，就表示容器正常
+            successThreshold: 1    # liveness探测成功的次数；如果成功1次，就表示容器正常 
+          lifecycle: # 优雅启动 & 优雅终止
+            postStart:
+              exec:
+              command: ["/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"]
+            preStop:
+              exec:
+              command: ["/bin/sh", "-c", "echo Bye from the preStop handler > /usr/share/message; sleep 10"]
           resources:  # 资源和请求的设置
             requests:
               cpu: 100m
