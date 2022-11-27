@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+data:
+  port: "80"
+  version: "0.0.0.2"
+  log_level: "info" # log-level

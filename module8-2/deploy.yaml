@@ -1,0 +1,71 @@
+apiVersion: apps/v1 
+kind: Deployment 
+metadata: 
+  name: httpserver-deployment 
+  labels: 
+    app: httpserver
+spec:
+  replicas: 2 
+  selector: 
+    matchLabels: 
+      app: httpserver 
+  template: 
+    metadata:
+      labels:
+        app: httpserver
+    spec:
+      containers:
+        - name: httpserver 
+          image: httpserver 
+          args: ["--v=10"]  
+          env: 
+            - name: PORT
+              valueFrom: 
+                configMapKeyRef: 
+                  name: http-config 
+                  key: PORT 
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "echo Hello from the postStart handler > /usr/share/message"]
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "echo Bye from the preStop handler > /usr/share/message; sleep 10"]
+        resources:  
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:  
+            cpu: 200m  
+            memory: 200Mi 
+        volumeMounts: 
+          - name: varlog 
+            mountPath: /var/log 
+            readOnly: true
+        env: 
+          - name: PORT
+            valueFrom: 
+              configMapKeyRef: 
+                name: config 
+                key: PORT 
+        livenessProbe:  
+          httpGet: 
+            path: /healthz 
+            port: 80 
+          initialDelaySeconds: 10 
+          periodSeconds: 30 
+          timeoutSeconds: 5 
+          failureThreshold: 3    
+          successThreshold: 1                            
+      volumes: 
+        - name: varlog
+          emptyDir: {} 
+        - name: config
+          configMap: 
+            name: config
+
+
+
+
+
+

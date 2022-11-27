@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gateway-ingress
+  labels:
+    apps: httpserver
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  tls:
+    - hosts:
+        - cncamp.com
+      secretName: cncamp-tls
+  rules:
+    - host: cncamp.com
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: httpserver # server.yaml metadata:name:
+                port:
+                  number: 60 # server.yaml spec:ports:port: 60
